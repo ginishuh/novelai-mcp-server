@@ -1,0 +1,27 @@
+{
+  "name": "novelai-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server for NovelAI integration",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.20.1",
+    "axios": "^1.6.0"
+  },
+  "keywords": ["mcp", "novelai", "ai", "image-generation", "text-generation"],
+  "author": {
+    "name": "ginishuh",
+    "url": "https://github.com/ginishuh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ginishuh/novelai-mcp-server.git"
+  },
+  "license": "MIT",
+  "bin": {
+    "novelai-mcp": "./index.js"
+  }
+}
