@@ -13,7 +13,7 @@ config();
 const server = new Server(
   {
     name: 'novelai-mcp-server',
-    version: '1.0.0',
+    version: '1.1.0',
   },
   {
     capabilities: {
@@ -28,7 +28,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
     tools: [
       {
         name: 'generate_image',
-        description: 'Generate images using NovelAI',
+        description: 'Generate high-quality anime images using NovelAI',
         inputSchema: {
           type: 'object',
           properties: {
@@ -38,8 +38,30 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             },
             model: {
               type: 'string',
-              description: 'Model to use (default: "NAI Diffusion V4.5")',
-              default: 'NAI Diffusion V4.5',
+              description: 'Model to use (default: "nai-diffusion-3")',
+              enum: ['nai-diffusion-3', 'nai-diffusion-4', 'safe-diffusion'],
+              default: 'nai-diffusion-3',
+            },
+            sampler: {
+              type: 'string',
+              description: 'Sampler algorithm (default: "k_euler_ancestral")',
+              enum: ['k_euler_ancestral', 'k_euler', 'k_dpmpp_2s_ancestral', 'k_dpmpp_2m', 'k_dpmpp_sde', 'ddim'],
+              default: 'k_euler_ancestral',
+            },
+            seed: {
+              type: 'number',
+              description: 'Random seed (default: -1 for random)',
+              default: -1,
+            },
+            negative_prompt: {
+              type: 'string',
+              description: 'Negative prompt to avoid unwanted elements (default: "")',
+              default: '',
+            },
+            n_samples: {
+              type: 'number',
+              description: 'Number of images to generate (default: 1)',
+              default: 1,
             },
             width: {
               type: 'number',
@@ -53,43 +75,13 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             },
             scale: {
               type: 'number',
-              description: 'CFG scale (default: 5.0)',
+              description: 'CFG scale - prompt adherence (default: 5.0)',
               default: 5.0,
             },
             steps: {
               type: 'number',
-              description: 'Number of steps (default: 28)',
+              description: 'Number of generation steps (default: 28)',
               default: 28,
-            },
-          },
-          required: ['prompt'],
-        },
-      },
-      {
-        name: 'generate_text',
-        description: 'Generate text using NovelAI',
-        inputSchema: {
-          type: 'object',
-          properties: {
-            prompt: {
-              type: 'string',
-              description: 'Text prompt for story generation',
-            },
-            model: {
-              type: 'string',
-              description: 'Model to use',
-              enum: ['opus', 'calliope-v2', 'kayra-v1'],
-              default: 'opus',
-            },
-            max_length: {
-              type: 'number',
-              description: 'Maximum text length',
-              default: 256,
-            },
-            temperature: {
-              type: 'number',
-              description: 'Generation temperature',
-              default: 0.75,
             },
           },
           required: ['prompt'],
@@ -105,89 +97,48 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
   try {
     if (name === 'generate_image') {
-      const response = await axios.post(
-        'https://api.novelai.net/ai/generate-image',
-        {
-          input: args.prompt,
-          model: args.model || 'NAI Diffusion V4.5',
-          parameters: {
-            width: args.width || 512,
-            height: args.height || 768,
-            scale: args.scale || 5.0,
-            steps: args.steps || 28,
-            seed: -1,
-            n_samples: 1,
-            uc: '',
-            ucPreset: 0,
-            qualityToggle: false,
-            sm: false,
-            sm_dyn: false,
-            dynamic_thresholding: false,
-            controlnet_strength: 1,
-            legacy: false,
-          },
-        },
-        {
-          headers: {
-            'Authorization': `Bearer ${process.env.NOVELAI_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
+      // Build request based on NovelAI's API documentation
+      const requestData = {
+        action: 'generate',
+        input: args.prompt,
+        model: args.model || 'nai-diffusion-3',
+        parameters: {
+          sampler: args.sampler || 'k_euler_ancestral',
+          seed: args.seed || -1,
+          negative_prompt: args.negative_prompt || '',
+          n_samples: args.n_samples || 1,
+          width: args.width || 512,
+          height: args.height || 768,
+          scale: args.scale || 5.0,
+          steps: args.steps || 28,
         }
-      );
-
-      return {
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify({
-              success: true,
-              image_data: response.data,
-              prompt: args.prompt,
-            }, null, 2),
-          },
-        ],
       };
-    }
 
-    if (name === 'generate_text') {
       const response = await axios.post(
-        'https://api.novelai.net/ai/generate',
-        {
-          model: args.model || 'opus',
-          input: args.prompt,
-          parameters: {
-            max_length: args.max_length || 256,
-            min_length: 1,
-            temperature: args.temperature || 0.75,
-            top_p: 0.9,
-            repetition_penalty: 1.0,
-            repetition_penalty_range: 0,
-            repetition_penalty_slope: 0,
-            typical_p: 1,
-            use_cache: false,
-            use_string: true,
-            return_end_sequence: false,
-            prefix: 'vanilla',
-            order: [1, 2, 3],
-          },
-        },
+        'https://image.novelai.net/ai/generate-image',
+        requestData,
         {
           headers: {
             'Authorization': `Bearer ${process.env.NOVELAI_API_KEY}`,
             'Content-Type': 'application/json',
           },
+          responseType: 'arraybuffer'
         }
       );
 
+      // Convert binary image data to base64
+      const imageBase64 = Buffer.from(response.data).toString('base64');
+      
       return {
         content: [
           {
             type: 'text',
             text: JSON.stringify({
               success: true,
-              generated_text: response.data.output,
+              image_data: `data:image/png;base64,${imageBase64}`,
               prompt: args.prompt,
-              model: args.model,
+              model: args.model || 'nai-diffusion-3',
+              parameters: requestData.parameters,
             }, null, 2),
           },
         ],
