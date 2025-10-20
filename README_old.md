@@ -73,78 +73,67 @@ Add to your MCP client configuration file (usually `~/.config/claude/mcp.json` o
 }
 ```
 
-## Available Tools
-
-### 🎨 `generate_image`
-Generate high-quality anime images using NovelAI's nai-diffusion-3 model.
-
-**Basic Parameters:**
-- `prompt` (required): Text prompt for image generation
-- `model`: Model to use (default: "nai-diffusion-3") ⚠️ **Only supported model currently**
-- `sampler`: Sampler algorithm (default: "k_euler_ancestral")
-- `seed`: Random seed (default: -1 for random)
-- `negative_prompt`: Negative prompt to avoid unwanted elements
-- `n_samples`: Number of images to generate (default: 1)
-- `width`: Image width (default: 512)
-- `height`: Image height (default: 768)
-- `scale`: CFG scale - prompt adherence (default: 5.0)
-- `steps`: Number of generation steps (default: 28)
-
-**🎭 Advanced Features:**
-- `v4_prompt`: V4 prompt format for character positioning
-  - `base_caption`: Base scene description
-  - `char_captions`: Array of characters with precise x,y coordinates (0-1 range)
-- `save_to_file`: Save image to local file (default: false)
-- `output_dir`: Custom save directory (default: Desktop/novelai_images)
-- `filename`: Custom filename (without extension)
-- `dynamic_thresholding`: Enable for better contrast
-- `variety_boost`: Enable for more diverse results
-- `quality_toggle`: Enable quality enhancement
-
-**📱 Example Usage:**
-
-**Basic:**
-```
-Generate an image of a beautiful anime girl in a garden, masterpiece, best quality
-```
-
-**Character Positioning:**
+### Alternative: Use Local Installation
 ```json
 {
-  "prompt": "masterpiece, anime style, park scene",
-  "v4_prompt": {
-    "base_caption": "masterpiece, anime style, park scene",
-    "char_captions": [
-      {
-        "centers": [{"x": 0.3, "y": 0.4}],
-        "char_caption": "1girl, blonde hair, blue eyes, smiling, summer dress"
-      }
-    ]
-  },
-  "save_to_file": true
+  "mcpServers": {
+    "novelai": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["./node_modules/novelai-mcp-server/index.js"]
+    }
+  }
 }
 ```
 
-**With File Saving:**
+## Available Tools
+
+### 🎨 `generate_image`
+Generate high-quality AI images using NovelAI's diffusion models.
+
+**Parameters:**
+- `prompt` (required): Text description of the image to generate
+- `model`: Model to use (default: "NAI Diffusion V4.5")
+  - Available: "NAI Diffusion V4.5", "NAI Diffusion V3", "Safe Diffusion V4"
+- `width`: Image width in pixels (default: 512, max: 1024)
+- `height`: Image height in pixels (default: 768, max: 1024) 
+- `scale`: CFG scale - prompt adherence (default: 5.0, range: 1.0-10.0)
+- `steps`: Number of generation steps (default: 28, range: 1-50)
+- `seed`: Random seed (default: -1 for random)
+
+**Example Usage:**
 ```
-Generate image of anime sunset, save to file, use dynamic thresholding
+Generate an image of a beautiful sunset over mountains, anime style, high quality
+```
+
+### 📝 `generate_text`
+Generate creative text, stories, and content using NovelAI's language models.
+
+**Parameters:**
+- `prompt` (required): Text prompt or starting text
+- `model`: Model to use (default: "opus")
+  - Available: "opus", "calliope-v2", "kayra-v1"
+- `max_length`: Maximum tokens to generate (default: 256, max: 2048)
+- `temperature`: Creativity/randomness (default: 0.75, range: 0.1-1.5)
+- `top_p`: Nucleus sampling (default: 0.9, range: 0.1-1.0)
+- `repetition_penalty`: Reduce text repetition (default: 1.0)
+
+**Example Usage:**
+```
+Once upon a time, in a world where magic and technology coexisted...
 ```
 
 ## Quick Start Examples
 
-### Basic Image Generation
-1. Ask your AI assistant: "Generate an image of a beautiful anime girl with blue hair"
+### Image Generation
+1. Ask your AI assistant: "Generate an image of a fantasy dragon flying over a castle"
 2. The assistant will use the `generate_image` tool
-3. Image data will be returned in base64 format
+3. Image data will be returned in JSON format
 
-### Character Positioning
-1. Ask: "Create an image with a girl on the left side and a boy on the right side"
-2. The assistant will use V4 prompt with character positioning
-3. Characters will be placed at precise coordinates
-
-### File Saving
-1. Ask: "Generate an anime landscape and save it to file"
-2. Image will be automatically saved to Desktop/novelai_images/
+### Text Generation  
+1. Ask: "Continue this story: The ancient tome began to glow with an eerie blue light..."
+2. The assistant will use `generate_text` tool
+3. Generated text will be returned
 
 ## API Key Setup
 
@@ -163,19 +152,14 @@ Generate image of anime sunset, save to file, use dynamic thresholding
 - Check .env file is in the right directory
 - Verify environment variable is properly exported
 
-**"Model doesn't exist" error**
-- Only use "nai-diffusion-3" model currently
-- NovelAI API doesn't support V4.5 yet
+**"Module not found" errors**
+- Run `npm install -g novelai-mcp-server` again
+- Clear npm cache: `npm cache clean --force`
 
-**Image generation fails**
-- Check your NovelAI account balance
+**MCP server not starting**
+- Check Node.js version (requires 16+)
 - Verify API key is valid and active
 - Check internet connection
-
-**File saving fails**
-- Ensure Desktop directory exists
-- Check write permissions
-- Verify output directory path is valid
 
 ### Debug Mode
 
@@ -200,20 +184,6 @@ npm start
 3. Make your changes
 4. Submit a pull request
 
-## Limitations
-
-- **Model Support**: Only `nai-diffusion-3` currently available via API
-- **Rate Limits**: Subject to NovelAI's API rate limiting
-- **Account Requirements**: Valid NovelAI subscription required
-
-## Future Updates
-
-We're actively monitoring NovelAI's API updates and will add support for:
-- V4.5 models when available in API
-- Additional samplers and parameters
-- Enhanced character positioning features
-- Text generation capabilities
-
 ## License
 
 MIT License - see LICENSE file for details
@@ -225,8 +195,9 @@ MIT License - see LICENSE file for details
 ## Support
 
 - 📧 Issues: [GitHub Issues](https://github.com/ginishuh/novelai-mcp-server/issues)
+- 📖 Documentation: [Repository Wiki](https://github.com/ginishuh/novelai-mcp-server/wiki)
 - 🐛 Bug Reports: [Create Issue](https://github.com/ginishuh/novelai-mcp-server/issues/new)
 
 ---
 
-**Made with ❤️ by ginishuh** | Version 0.1.0
+**Made with ❤️ by ginishuh** | Version 1.0.1
