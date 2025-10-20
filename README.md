@@ -1,5 +1,96 @@
 # NovelAI MCP Server
 
+[English README below]
+
+## 한국어 README
+
+Model Context Protocol (MCP) 서버로 NovelAI 이미지 생성을 사용하세요. 캐릭터 포지셔닝과 V4 프롬프트 같은 고급 기능으로 고품질 애니메 아트를 만들 수 있습니다.
+
+## ⚠️ 중요 알림
+
+**현재 API 제한**: NovelAI API는 현재 `nai-diffusion-3` 모델만 지원합니다. 고급 V4.5 기능은 웹 인터페이스에서는 사용 가능하지만 아직 API에서는 지원되지 않습니다. NovelAI가 API 지원을 확장하면 즉시 업데이트하겠습니다!
+
+## 기능들
+
+- 🎨 **AI 이미지 생성** NovelAI의 nai-diffusion-3 모델 사용
+- 🎭 **고급 캐릭터 포지셔닝** V4 프롬프트 포맷으로
+- 💾 **직접 파일 저장** 바로 데스크톱에
+- 🔧 **간단한 설정** 환경변수나 .env 파일로
+- 🌐 **크로스플랫폼** 지원 (Windows, Linux, macOS)
+- 📦 **설정 필요 없음** npm으로 바로 설치
+- ⚡ **고급 파라미터**: dynamic thresholding, variety boost, quality toggle
+
+## 설치 방법 (한국어)
+
+### 전역 설치 (권장)
+```bash
+npm install -g novelai-mcp-server
+```
+
+### 로컬 설치
+```bash
+npm install novelai-mcp-server
+```
+
+## 설정 방법 (한국어)
+
+### 방법 1: 환경변수 (권장)
+
+**Windows:**
+```cmd
+setx NOVELAI_API_KEY "당신의-API-키"
+```
+
+**Linux/macOS:**
+```bash
+export NOVELAI_API_KEY="당신의-API-키"
+echo 'export NOVELAI_API_KEY="당신의-API-키"' >> ~/.bashrc
+```
+
+### 방법 2: .env 파일
+
+서버를 실행하는 디렉터리에 `.env` 파일 생성:
+```env
+NOVELAI_API_KEY=당신의-API-키
+```
+
+## MCP 설정 (한국어)
+
+MCP 클라이언트 설정 파일에 추가 (보통 `~/.config/claude/mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "novelai": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "novelai-mcp-server"]
+    }
+  }
+}
+```
+
+## 사용 예시 (한국어)
+
+### 기본 이미지 생성
+```
+아름다운 애니메 소녀 이미지 생성해줘
+```
+
+### 파일 저장 포함
+```
+애니메 일몰 노을 이미지 생성하고 파일로 저장해줘
+```
+
+### 캐릭터 포지셔닝
+```
+왼쪽에는 금발 여자아이, 오른쪽에는 검은머리 남자아이가 있는 공원 이미지 생성해줘
+```
+
+---
+
+# NovelAI MCP Server
+
 Model Context Protocol (MCP) server for NovelAI image generation. Create high-quality anime art with advanced features like character positioning and V4 prompts.
 
 ## ⚠️ Important Note
@@ -214,15 +305,34 @@ We're actively monitoring NovelAI's API updates and will add support for:
 - Enhanced character positioning features
 - Text generation capabilities
 
-## License
+## 라이선스
 
-MIT License - see LICENSE file for details
+MIT License - LICENSE 파일 참조
 
-## Author
+## 저자
 
 **ginishuh** - [GitHub](https://github.com/ginishuh)
 
-## Support
+## 지원
+
+- 📧 이슈: [GitHub Issues](https://github.com/ginishuh/novelai-mcp-server/issues)
+- 🐛 버그 리포트: [이슈 생성](https://github.com/ginishuh/novelai-mcp-server/issues/new)
+
+---
+
+**Made with ❤️ by ginishuh** | Version 0.1.0
+
+---
+
+## License (English)
+
+MIT License - see LICENSE file for details
+
+## Author (English)
+
+**ginishuh** - [GitHub](https://github.com/ginishuh)
+
+## Support (English)
 
 - 📧 Issues: [GitHub Issues](https://github.com/ginishuh/novelai-mcp-server/issues)
 - 🐛 Bug Reports: [Create Issue](https://github.com/ginishuh/novelai-mcp-server/issues/new)
