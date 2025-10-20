@@ -5,6 +5,10 @@ import {
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 import axios from 'axios';
+import { config } from 'dotenv';
+
+// Load environment variables from .env file
+config();
 
 const server = new Server(
   {
