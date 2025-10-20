@@ -6,6 +6,9 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import axios from 'axios';
 import { config } from 'dotenv';
+import fs from 'fs';
+import path from 'path';
+import os from 'os';
 
 // Load environment variables from .env file
 config();
@@ -83,6 +86,21 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
               description: 'Number of generation steps (default: 28)',
               default: 28,
             },
+            save_to_file: {
+              type: 'boolean',
+              description: 'Save image to local file (default: false)',
+              default: false,
+            },
+            output_dir: {
+              type: 'string',
+              description: 'Output directory for saved images (default: Desktop/novelai_images)',
+              default: '',
+            },
+            filename: {
+              type: 'string',
+              description: 'Custom filename (without extension, default: auto-generated)',
+              default: '',
+            },
           },
           required: ['prompt'],
         },
@@ -129,17 +147,61 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       // Convert binary image data to base64
       const imageBase64 = Buffer.from(response.data).toString('base64');
       
+      let savedFilePath = null;
+      
+      // Save to file if requested
+      if (args.save_to_file) {
+        try {
+          // Determine output directory
+          const desktopPath = path.join(os.homedir(), 'Desktop');
+          const defaultDir = path.join(desktopPath, 'novelai_images');
+          const outputDir = args.output_dir || defaultDir;
+          
+          // Create directory if it doesn't exist
+          if (!fs.existsSync(outputDir)) {
+            fs.mkdirSync(outputDir, { recursive: true });
+          }
+          
+          // Generate filename
+          let filename;
+          if (args.filename) {
+            filename = args.filename.replace(/[^a-zA-Z0-9_-]/g, '_');
+          } else {
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const randomStr = Math.random().toString(36).substring(2, 8);
+            filename = `novelai_${timestamp}_${randomStr}`;
+          }
+          
+          const filePath = path.join(outputDir, `${filename}.png`);
+          
+          // Save the file
+          fs.writeFileSync(filePath, response.data);
+          savedFilePath = filePath;
+          
+        } catch (saveError) {
+          console.error('Error saving file:', saveError);
+          savedFilePath = null;
+        }
+      }
+      
+      const result = {
+        success: true,
+        image_data: `data:image/png;base64,${imageBase64}`,
+        prompt: args.prompt,
+        model: args.model || 'nai-diffusion-3',
+        parameters: requestData.parameters,
+      };
+      
+      if (savedFilePath) {
+        result.saved_file_path = savedFilePath;
+        result.message = `Image saved to: ${savedFilePath}`;
+      }
+      
       return {
         content: [
           {
             type: 'text',
-            text: JSON.stringify({
-              success: true,
-              image_data: `data:image/png;base64,${imageBase64}`,
-              prompt: args.prompt,
-              model: args.model || 'nai-diffusion-3',
-              parameters: requestData.parameters,
-            }, null, 2),
+            text: JSON.stringify(result, null, 2),
           },
         ],
       };
