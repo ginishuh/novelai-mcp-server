@@ -101,6 +101,52 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
               description: 'Custom filename (without extension, default: auto-generated)',
               default: '',
             },
+            v4_prompt: {
+              type: 'object',
+              description: 'Advanced V4 prompt format for character positioning',
+              properties: {
+                base_caption: {
+                  type: 'string',
+                  description: 'Base prompt text'
+                },
+                char_captions: {
+                  type: 'array',
+                  description: 'Array of character captions with positions',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      centers: {
+                        type: 'array',
+                        description: 'Position coordinates [[x, y]] where x,y are 0-1',
+                        items: {
+                          type: 'array',
+                          items: { type: 'number' }
+                        }
+                      },
+                      char_caption: {
+                        type: 'string',
+                        description: 'Character description prompt'
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            dynamic_thresholding: {
+              type: 'boolean',
+              description: 'Enable dynamic thresholding for better contrast (default: false)',
+              default: false,
+            },
+            variety_boost: {
+              type: 'boolean',
+              description: 'Enable variety boost for more diverse results (default: false)',
+              default: false,
+            },
+            quality_toggle: {
+              type: 'boolean',
+              description: 'Enable quality toggle (default: false)',
+              default: false,
+            },
           },
           required: ['prompt'],
         },
@@ -116,20 +162,39 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   try {
     if (name === 'generate_image') {
       // Build request based on NovelAI's API documentation
+      const baseParameters = {
+        sampler: args.sampler || 'k_euler_ancestral',
+        seed: args.seed || -1,
+        negative_prompt: args.negative_prompt || '',
+        n_samples: args.n_samples || 1,
+        width: args.width || 512,
+        height: args.height || 768,
+        scale: args.scale || 5.0,
+        steps: args.steps || 28,
+      };
+
+      // Add advanced features if provided
+      if (args.v4_prompt) {
+        baseParameters.v4_prompt = args.v4_prompt;
+      }
+      
+      if (args.dynamic_thresholding) {
+        baseParameters.dynamic_thresholding = args.dynamic_thresholding;
+      }
+      
+      if (args.variety_boost) {
+        baseParameters.variety_boost = args.variety_boost;
+      }
+      
+      if (args.quality_toggle) {
+        baseParameters.quality_toggle = args.quality_toggle;
+      }
+
       const requestData = {
         action: 'generate',
         input: args.prompt,
         model: args.model || 'nai-diffusion-3',
-        parameters: {
-          sampler: args.sampler || 'k_euler_ancestral',
-          seed: args.seed || -1,
-          negative_prompt: args.negative_prompt || '',
-          n_samples: args.n_samples || 1,
-          width: args.width || 512,
-          height: args.height || 768,
-          scale: args.scale || 5.0,
-          steps: args.steps || 28,
-        }
+        parameters: baseParameters
       };
 
       const response = await axios.post(
