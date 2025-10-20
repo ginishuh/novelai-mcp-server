@@ -38,8 +38,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             },
             model: {
               type: 'string',
-              description: 'Model to use (default: "NAI Diffusion V3")',
-              default: 'NAI Diffusion V3',
+              description: 'Model to use (default: "NAI Diffusion V4.5")',
+              default: 'NAI Diffusion V4.5',
             },
             width: {
               type: 'number',
@@ -78,8 +78,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             model: {
               type: 'string',
               description: 'Model to use',
-              enum: ['calliope-v2', 'kayra-v1'],
-              default: 'calliope-v2',
+              enum: ['opus', 'calliope-v2', 'kayra-v1'],
+              default: 'opus',
             },
             max_length: {
               type: 'number',
@@ -109,7 +109,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         'https://api.novelai.net/ai/generate-image',
         {
           input: args.prompt,
-          model: args.model || 'NAI Diffusion V3',
+          model: args.model || 'NAI Diffusion V4.5',
           parameters: {
             width: args.width || 512,
             height: args.height || 768,
@@ -153,7 +153,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const response = await axios.post(
         'https://api.novelai.net/ai/generate',
         {
-          model: args.model || 'calliope-v2',
+          model: args.model || 'opus',
           input: args.prompt,
           parameters: {
             max_length: args.max_length || 256,
